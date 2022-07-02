@@ -21,7 +21,7 @@ public class AutoPVP extends MeteorAddon {
 
 		// Required when using @EventHandler
 		MeteorClient.EVENT_BUS.registerLambdaFactory("me.ghost.autopvp", (lookupInMethod, klass) -> (MethodHandles.Lookup) lookupInMethod.invoke(null, klass, MethodHandles.lookup()));
-
+        Modules.get().add(new PeeVeePee());
 
 	}
 

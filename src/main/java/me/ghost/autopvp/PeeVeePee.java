@@ -1,33 +1,37 @@
 package me.ghost.autopvp;
 
-import me.ghost.autopvp.controllers.KAController;
+import me.ghost.autopvp.controller.Controller;
+import me.ghost.autopvp.controller.controllers.CAController;
+import me.ghost.autopvp.controller.controllers.KAController;
 import me.ghost.autopvp.task.tasks.GetSafeTask;
 import me.ghost.autopvp.task.tasks.PathToTargetTask;
 import me.ghost.autopvp.utils.BlockUtils;
 import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.settings.DoubleSetting;
-import meteordevelopment.meteorclient.settings.EnumSetting;
-import meteordevelopment.meteorclient.settings.Setting;
-import meteordevelopment.meteorclient.settings.SettingGroup;
-import meteordevelopment.meteorclient.systems.modules.Category;
+import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.entity.SortPriority;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.entity.player.PlayerEntity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PeeVeePee extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
+    private final SettingGroup sgCombat = settings.createGroup("Combat");
+    private final SettingGroup sgSafety = settings.createGroup("Safety");
 
 
-    private KAController kaController = new KAController();
+    private KAController kaControl = new KAController();
+    private CAController caControl = new CAController();
+
+    List<Controller> controllers = List.of(kaControl, caControl);
 
     private GetSafeTask gst;
     private PathToTargetTask pttt;
 
-    public PeeVeePee() {
-        super(AutoPVP.CATEGORY, "AutoPVP", "button pushing with no buttons");
-    }
+
     public PlayerEntity target;
 
 
@@ -35,7 +39,14 @@ public class PeeVeePee extends Module {
     private final Setting<Double> targetRange = sgGeneral.add(new DoubleSetting.Builder().name("range").description("The maximum range the entity can be to attack it.").defaultValue(4.5).min(0).sliderMax(6).build());
     private final Setting<SortPriority> priority = sgGeneral.add(new EnumSetting.Builder<SortPriority>().name("priority").description("How to filter targets within range.").defaultValue(SortPriority.LowestHealth).build());
 
+    public final Setting<Boolean> useKillaura = sgCombat.add(new BoolSetting.Builder().name("use-killaura").defaultValue(true).build());
+    public final Setting<Boolean> useCrystalAura = sgCombat.add(new BoolSetting.Builder().name("use-crystalaura").defaultValue(true).build());
+    //private final Setting<Boolean> useBedAura = sgCombat.add(new BoolSetting.Builder().name("use-bedaura").defaultValue(true).build());
+    //private final Setting<Boolean> useAnchorAura = sgCombat.add(new BoolSetting.Builder().name("use-anchoraura").defaultValue(true).build());
 
+    public PeeVeePee() {
+        super(AutoPVP.CATEGORY, "AutoPVP", "button pushing with no buttons");
+    }
 
     @EventHandler
     private void onTick(TickEvent.Pre event) {
@@ -46,11 +57,12 @@ public class PeeVeePee extends Module {
     }
 
     public void doSafeStuff() {
-        if (!BlockUtils.isSafePos(mc.player.getBlockPos())) { // keep the player in a safe position
-            if (gst == null) gst = new GetSafeTask();
+        if (!BlockUtils.isSafePos(mc.player.getBlockPos())) { // only worry if the current pos isn't safe
+            if (gst == null) gst = new GetSafeTask(); // get to a safe spot
             gst.tick();
             if (gst.isComplete()) gst = null;
         }
+        controllers.forEach(Controller::deactivate); // make sure all pvp controllers do nothing
         //todo tasks for health, armor dura management
 
     }
@@ -62,7 +74,10 @@ public class PeeVeePee extends Module {
             pttt.tick();
             if (pttt.isComplete()) pttt = null;
         } else { // once the target is in range & we're safe, do the actual combat stuff
-            //todo module controllers onTicks here
+            controllers.forEach(controller -> { // (re)activate + tick pvp controllers
+                controller.activate();
+                controller.tick();
+            });
         }
 
     }

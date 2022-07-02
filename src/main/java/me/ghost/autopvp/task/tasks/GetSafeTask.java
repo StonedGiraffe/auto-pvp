@@ -3,6 +3,7 @@ package me.ghost.autopvp.task.tasks;
 import me.ghost.autopvp.task.Task;
 import me.ghost.autopvp.utils.BaritoneUtils;
 import me.ghost.autopvp.utils.BlockUtils;
+import me.ghost.autopvp.utils.HoleUtils;
 import net.minecraft.util.math.BlockPos;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
@@ -17,7 +18,7 @@ public class GetSafeTask extends Task {
     public GetSafeTask() {
         super("GetSafe");
         this.reset(); // reset and set the goal to the nearest safe hole
-        this.goalPos = getSafeHole();
+        this.goalPos = HoleUtils.getHoleBySelf();
     }
 
     @Override
@@ -32,17 +33,12 @@ public class GetSafeTask extends Task {
                 }
             }
         } else { // set the goal if we don't have one
-            BlockPos bestHole = getSafeHole();
+            BlockPos bestHole = HoleUtils.getHoleBySelf();
             if (bestHole == null) this.reset();
             this.goalPos = bestHole;
         }
     }
 
-
-    public BlockPos getSafeHole() {
-        return mc.player.getBlockPos();
-        //todo code here
-    }
 
     public boolean goalCheck() {
         return this.goalPos != null && BlockUtils.isSafePos(this.goalPos);

@@ -17,10 +17,8 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
 public class BlockUtils {
 
     public static boolean isSafePos(BlockPos pos) {
-        if (!getState(pos).isAir() || !getState(pos.up()).isAir() || !getState(pos.up(2)).isAir()) return false;
-        for (CardinalDirection c : CardinalDirection.values()) {
-            if (getBlock(pos.offset(c.toDirection())).getBlastResistance() < 600) return false;
-        }
+        if (!getState(pos).isAir() || !getState(pos.up()).isAir() || !getState(pos.up(2)).isAir()) return false; // make sure its air and there's ample space above for entry or baritone goes retard
+        for (CardinalDirection c : CardinalDirection.values()) if (getBlock(pos.offset(c.toDirection())).getBlastResistance() < 600) return false; // ensure proper blast resistance on 4 sides
         return true;
     }
 
