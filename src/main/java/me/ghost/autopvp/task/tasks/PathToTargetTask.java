@@ -1,11 +1,14 @@
 package me.ghost.autopvp.task.tasks;
 
+import me.ghost.autopvp.controller.ControllerUtils;
 import me.ghost.autopvp.task.Task;
 import me.ghost.autopvp.utils.BaritoneUtils;
 import me.ghost.autopvp.utils.BlockUtils;
 import me.ghost.autopvp.utils.HoleUtils;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
+
+import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 //Path to the hole nearest the current target
 public class PathToTargetTask extends Task {
@@ -32,11 +35,16 @@ public class PathToTargetTask extends Task {
         this.goalPos = null;
     }
 
+    @Override
+    public boolean shouldRun() {
+        if (mc.player.distanceTo(target) >= ControllerUtils.getAutoPVP().targetRange.get() || !BlockUtils.isSafePos(mc.player.getBlockPos())) return true;
+        return this.isRunning() && !this.isComplete();
+    }
+
 
     @Override
     public void tick() {
-        if (this.isComplete()) return; // sanity checks
-        if (!this.isRunning() || this.target == null) {
+        if (!this.shouldRun() || this.target == null) { // sanity check
             this.reset();
             return;
         }

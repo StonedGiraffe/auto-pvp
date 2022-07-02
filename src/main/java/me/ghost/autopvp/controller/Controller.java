@@ -3,7 +3,7 @@ package me.ghost.autopvp.controller;
 public class Controller {
 
     private String name;
-    private boolean active;
+    public boolean active;
 
     public Controller(String name) {
         this.name = name;

@@ -34,6 +34,19 @@ public class CAController extends Controller {
         if (shouldCA(target)) ca.toggle(); // enable ca if we should
     }
 
+    @Override
+    public void activate() {
+        this.active = true;
+        this.tick(); // lol
+    }
+
+    @Override
+    public void deactivate() {
+        this.active = false;
+        CrystalAura ca = Modules.get().get(CrystalAura.class);
+        if (ca.isActive()) ca.toggle();
+    }
+
     public boolean shouldCA(PlayerEntity target) {
         if (EntityUtils.getTotalHealth(target) <= 10) return true;
         return !BlockUtils.isSafePos(target.getBlockPos());

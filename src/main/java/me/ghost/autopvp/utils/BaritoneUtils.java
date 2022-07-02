@@ -21,6 +21,7 @@ public class BaritoneUtils {
 
     public static void forceStopPathing() {
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().forceCancel();
+        //BaritoneAPI.getProvider().getPrimaryBaritone().getCommandManager().execute("stop");
     }
 
     public static void stopPathing() {

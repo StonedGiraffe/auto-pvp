@@ -31,4 +31,17 @@ public class KAController extends Controller {
         }
         if (!ka.isActive()) ka.toggle(); // enable otherwise
     }
+
+    @Override
+    public void activate() {
+        this.active = true;
+        this.tick();
+    }
+
+    @Override
+    public void deactivate() {
+        this.active = false;
+        KillAura ka = Modules.get().get(KillAura.class);
+        if (ka.isActive()) ka.toggle();
+    }
 }

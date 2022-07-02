@@ -18,7 +18,20 @@ public class GetSafeTask extends Task {
     public GetSafeTask() {
         super("GetSafe");
         this.reset(); // reset and set the goal to the nearest safe hole
-        this.goalPos = HoleUtils.getHoleBySelf();
+    }
+
+    @Override
+    public void reset() {
+        this.setIncomplete();
+        this.disable();
+        BaritoneUtils.forceStopPathing();
+        this.goalPos = null;
+    }
+
+    @Override
+    public boolean shouldRun() {
+        if (HoleUtils.isPlayerSafe()) return false;
+        return this.isRunning() && !this.isComplete();
     }
 
     @Override
