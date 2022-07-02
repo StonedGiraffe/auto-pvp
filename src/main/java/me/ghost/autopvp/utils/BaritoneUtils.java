@@ -19,6 +19,10 @@ public class BaritoneUtils {
         BaritoneAPI.getProvider().getPrimaryBaritone().getFollowProcess().follow(entity -> entity.getEntityName().equalsIgnoreCase(player.getEntityName()));
     }
 
+    public static void clearGoal() {
+        BaritoneAPI.getProvider().getPrimaryBaritone().getCommandManager().execute("goal clear");
+    }
+
     public static void forceStopPathing() {
         BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().forceCancel();
         //BaritoneAPI.getProvider().getPrimaryBaritone().getCommandManager().execute("stop");
