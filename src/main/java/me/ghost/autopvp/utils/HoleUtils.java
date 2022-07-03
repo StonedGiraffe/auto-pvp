@@ -13,8 +13,8 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class HoleUtils {
 
-    public static boolean isPlayerSafe() {
-        return BlockUtils.isSafePos(mc.player.getBlockPos());
+    public static boolean isPlayerSafe(PlayerEntity player) {
+        return BlockUtils.isSafePos(player.getBlockPos());
     }
 
     public static BlockPos getHoleByTarget(PlayerEntity target) { // get the nearest safe hole (within combat range) of a target

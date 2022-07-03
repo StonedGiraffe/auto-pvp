@@ -7,6 +7,8 @@ import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.systems.modules.player.AutoGap;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 
+import static meteordevelopment.meteorclient.MeteorClient.mc;
+
 public class GapTask extends SafetyTask {
 
 
@@ -17,6 +19,6 @@ public class GapTask extends SafetyTask {
     @Override
     public boolean check() {
         PeeVeePee p = Helper.getAutoPVP();
-        return HoleUtils.isPlayerSafe() && !(PlayerUtils.getTotalHealth() > p.autogapHealth.get());
+        return HoleUtils.isPlayerSafe(mc.player) && !(PlayerUtils.getTotalHealth() > p.autogapHealth.get());
     }
 }

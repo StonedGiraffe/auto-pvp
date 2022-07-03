@@ -9,6 +9,8 @@ import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import net.minecraft.entity.player.PlayerEntity;
 
+import static meteordevelopment.meteorclient.MeteorClient.mc;
+
 public class CityTask extends CombatTask{
 
     public CityTask() {
@@ -17,16 +19,17 @@ public class CityTask extends CombatTask{
 
     @Override
     public boolean selfCheck() {
-        if (!Helper.getAutoPVP().useCrystalAura.get()) return false;
+        if (!Helper.getAutoPVP().useAutoCity.get()) return false;
         if (PlayerUtils.getTotalHealth() <= Helper.getMinHealth()) return false;
-        return HoleUtils.isPlayerSafe();
+        return HoleUtils.isPlayerSafe(mc.player);
     }
 
     @Override
     public boolean targetCheck() {
-        if (!Helper.getAutoPVP().useCrystalAura.get()) return false;
+        if (!Helper.getAutoPVP().useAutoCity.get()) return false;
         PlayerEntity target = Helper.getCurrentTarget();
         if (TargetUtils.isBadTarget(target, Helper.getTargetRange())) return false;
+        if (!HoleUtils.isPlayerSafe(target)) return false; // Don't city unsurrounded players
         return !BlockUtils.isSafePos(target.getBlockPos());
     }
 }

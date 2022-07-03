@@ -3,6 +3,7 @@ package me.ghost.autopvp;
 
 import me.ghost.autopvp.task.combat.BATask;
 import me.ghost.autopvp.task.combat.CATask;
+import me.ghost.autopvp.task.combat.CityTask;
 import me.ghost.autopvp.task.pathing.PathStatus;
 import me.ghost.autopvp.task.pathing.PathingTask;
 import me.ghost.autopvp.task.safety.GapTask;
@@ -11,6 +12,7 @@ import me.ghost.autopvp.utils.HoleUtils;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.utils.entity.EntityUtils;
 import meteordevelopment.meteorclient.utils.entity.SortPriority;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
@@ -20,8 +22,11 @@ import net.minecraft.util.math.BlockPos;
 
 public class PeeVeePee extends Module {
     private final SettingGroup sgTargeting = settings.createGroup("Targeting");
-    private final SettingGroup sgCombat = settings.createGroup("Combat");
     private final SettingGroup sgSafety = settings.createGroup("Safety");
+    private final SettingGroup sgInHoles = settings.createGroup("In Holes");
+    private final SettingGroup sgCA = settings.createGroup("Crystal Aura");
+    private final SettingGroup sgBA = settings.createGroup("Bed Aura");
+
 
 
     // Pathing
@@ -32,6 +37,7 @@ public class PeeVeePee extends Module {
     // Combat Tasks
     private final CATask ca = new CATask();
     private final BATask ba = new BATask();
+    private final CityTask city = new CityTask();
 
 
     // Safety Tasks
@@ -53,15 +59,21 @@ public class PeeVeePee extends Module {
     public final Setting<Double> targetRange = sgTargeting.add(new DoubleSetting.Builder().name("target-range").description("Max range for targeting").defaultValue(4.5).min(0).sliderMax(6).build());
     private final Setting<SortPriority> priority = sgTargeting.add(new EnumSetting.Builder<SortPriority>().name("priority").description("How to filter targets within range.").defaultValue(SortPriority.LowestHealth).build());
 
+    // Safety Settings
+    public final Setting<Boolean> surroundFallback = sgSafety.add(new BoolSetting.Builder().name("surround-fallback").defaultValue(true).build());
+
+
+    // In Hole Settings
+    public final Setting<Boolean> useAutoCity = sgInHoles.add(new BoolSetting.Builder().name("use-auto-city").defaultValue(true).build());
+    public final Setting<Boolean> useKillaura = sgInHoles.add(new BoolSetting.Builder().name("use-killaura").defaultValue(true).build());
+
 
     //private final Setting<Double> combatHoleRange = sgCombat.add(new DoubleSetting.Builder().name("max-combat-hole-range").description("Max distance between safe holes and the target").defaultValue(4.5).min(0).sliderMax(6).build());
-    public final Setting<Boolean> useKillaura = sgCombat.add(new BoolSetting.Builder().name("use-killaura").defaultValue(true).build());
-    public final Setting<Boolean> useCrystalAura = sgCombat.add(new BoolSetting.Builder().name("use-crystalaura").defaultValue(true).build());
+      public final Setting<Boolean> useCrystalAura = sgCA.add(new BoolSetting.Builder().name("use-crystalaura").defaultValue(true).build());
     //private final Setting<Boolean> useBedAura = sgCombat.add(new BoolSetting.Builder().name("use-bedaura").defaultValue(true).build());
     //private final Setting<Boolean> useAnchorAura = sgCombat.add(new BoolSetting.Builder().name("use-anchoraura").defaultValue(true).build());
 
     //public final Setting<Double> safeHoleRange = sgSafety.add(new DoubleSetting.Builder().name("max-safe-hole-range").description("Max distance between your position and safe holes").defaultValue(7.5).min(0).sliderMax(6).build());
-    public final Setting<Boolean> surroundFallback = sgSafety.add(new BoolSetting.Builder().name("allow-surround-fallback").defaultValue(true).build());
 
     public PeeVeePee() {
         super(AutoPVP.CATEGORY, "AutoPVP", "button pushing with no buttons");
@@ -125,6 +137,7 @@ public class PeeVeePee extends Module {
             targetPathSeq();
         }
         state = State.Combat;
+
         ca.run();
     }
 
@@ -137,7 +150,7 @@ public class PeeVeePee extends Module {
 
 
     private boolean isSafe() {
-        return HoleUtils.isPlayerSafe();
+        return HoleUtils.isPlayerSafe(mc.player);
     }
 
     private boolean hasTarget() {

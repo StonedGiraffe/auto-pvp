@@ -9,6 +9,8 @@ import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import net.minecraft.entity.player.PlayerEntity;
 
+import static meteordevelopment.meteorclient.MeteorClient.mc;
+
 public class CATask extends CombatTask{
 
     public CATask() {
@@ -19,7 +21,7 @@ public class CATask extends CombatTask{
     public boolean selfCheck() {
         if (!Helper.getAutoPVP().useCrystalAura.get()) return false;
         if (PlayerUtils.getTotalHealth() <= Helper.getMinHealth()) return false;
-        return HoleUtils.isPlayerSafe();
+        return HoleUtils.isPlayerSafe(mc.player);
     }
 
     @Override
