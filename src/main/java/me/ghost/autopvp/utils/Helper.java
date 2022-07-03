@@ -26,7 +26,7 @@ public class Helper {
     }
 
     public static double getMinHealth() {
-        return getAutoPVP().minCombatHealth.get();
+        return getAutoPVP().combatHealth.get();
     }
 
     public static PlayerEntity getCurrentTarget() {

@@ -4,15 +4,14 @@ import me.ghost.autopvp.utils.BlockUtils;
 import me.ghost.autopvp.utils.Helper;
 import me.ghost.autopvp.utils.HoleUtils;
 import meteordevelopment.meteorclient.systems.modules.Modules;
-import meteordevelopment.meteorclient.systems.modules.combat.CrystalAura;
+import meteordevelopment.meteorclient.systems.modules.combat.BedAura;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import net.minecraft.entity.player.PlayerEntity;
 
-public class CATask extends CombatTask{
-
-    public CATask() {
-        super(Modules.get().get(CrystalAura.class));
+public class BATask extends CombatTask{
+    public BATask() {
+        super(Modules.get().get(BedAura.class));
     }
 
     @Override

@@ -4,15 +4,15 @@ import me.ghost.autopvp.utils.BlockUtils;
 import me.ghost.autopvp.utils.Helper;
 import me.ghost.autopvp.utils.HoleUtils;
 import meteordevelopment.meteorclient.systems.modules.Modules;
-import meteordevelopment.meteorclient.systems.modules.combat.CrystalAura;
+import meteordevelopment.meteorclient.systems.modules.combat.AutoCity;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import net.minecraft.entity.player.PlayerEntity;
 
-public class CATask extends CombatTask{
+public class CityTask extends CombatTask{
 
-    public CATask() {
-        super(Modules.get().get(CrystalAura.class));
+    public CityTask() {
+        super(Modules.get().get(AutoCity.class));
     }
 
     @Override
