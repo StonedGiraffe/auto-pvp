@@ -1,7 +1,9 @@
 package me.ghost.autopvp;
 
 
+import me.ghost.autopvp.task.combat.BATask;
 import me.ghost.autopvp.task.combat.CATask;
+import me.ghost.autopvp.task.combat.CityTask;
 import me.ghost.autopvp.task.pathing.PathStatus;
 import me.ghost.autopvp.task.pathing.PathingTask;
 import me.ghost.autopvp.task.safety.GapTask;
@@ -10,6 +12,7 @@ import me.ghost.autopvp.utils.HoleUtils;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.utils.entity.EntityUtils;
 import meteordevelopment.meteorclient.utils.entity.SortPriority;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
@@ -18,43 +21,59 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
 public class PeeVeePee extends Module {
-    private final SettingGroup sgGeneral = settings.getDefaultGroup();
-    private final SettingGroup sgCombat = settings.createGroup("Combat");
+    private final SettingGroup sgTargeting = settings.createGroup("Targeting");
     private final SettingGroup sgSafety = settings.createGroup("Safety");
+    private final SettingGroup sgInHoles = settings.createGroup("In Holes");
+    private final SettingGroup sgCA = settings.createGroup("Crystal Aura");
+    private final SettingGroup sgBA = settings.createGroup("Bed Aura");
+
 
 
     // Pathing
     private final PathingTask targetPathing = new PathingTask();
     private final PathingTask safePathing = new PathingTask();
 
+
     // Combat Tasks
     private final CATask ca = new CATask();
+    private final BATask ba = new BATask();
+    private final CityTask city = new CityTask();
+
 
     // Safety Tasks
     private final GapTask autoGap = new GapTask();
 
+
+    // Values
     public PlayerEntity target;
 
     public enum State {SafePath, TargetPath, Combat, Idle}
     public State state = State.SafePath;
     public String ext = "";
 
-    public final Setting<Double> minCombatHealth = sgGeneral.add(new DoubleSetting.Builder().name("min-combat-health").description("Min health to use combat modules").defaultValue(15).build());
-    public final Setting<Double> distRatio = sgGeneral.add(new DoubleSetting.Builder().name("dist-ratio").description("what distance to maintain from your target").defaultValue(3).min(0).sliderMax(6).build());
-    public final Setting<Double> targetRange = sgGeneral.add(new DoubleSetting.Builder().name("target-range").description("Max range for targeting").defaultValue(4.5).min(0).sliderMax(6).build());
-    private final Setting<SortPriority> priority = sgGeneral.add(new EnumSetting.Builder<SortPriority>().name("priority").description("How to filter targets within range.").defaultValue(SortPriority.LowestHealth).build());
+
+    // Targeting Settings
+    public final Setting<Double> combatHealth = sgTargeting.add(new DoubleSetting.Builder().name("combat-health").description("Min health to use combat modules").defaultValue(15).build());
+    public final Setting<Double> autogapHealth = sgTargeting.add(new DoubleSetting.Builder().name("autogap-health").description("What health auto gap activates on").defaultValue(10).build());
+    public final Setting<Double> followRange = sgTargeting.add(new DoubleSetting.Builder().name("dist-ratio").description("what distance to maintain from your target").defaultValue(3).min(0).sliderMax(6).build());
+    public final Setting<Double> targetRange = sgTargeting.add(new DoubleSetting.Builder().name("target-range").description("Max range for targeting").defaultValue(4.5).min(0).sliderMax(6).build());
+    private final Setting<SortPriority> priority = sgTargeting.add(new EnumSetting.Builder<SortPriority>().name("priority").description("How to filter targets within range.").defaultValue(SortPriority.LowestHealth).build());
+
+    // Safety Settings
+    public final Setting<Boolean> surroundFallback = sgSafety.add(new BoolSetting.Builder().name("surround-fallback").defaultValue(true).build());
+
+
+    // In Hole Settings
+    public final Setting<Boolean> useAutoCity = sgInHoles.add(new BoolSetting.Builder().name("use-auto-city").defaultValue(true).build());
+    public final Setting<Boolean> useKillaura = sgInHoles.add(new BoolSetting.Builder().name("use-killaura").defaultValue(true).build());
+
 
     //private final Setting<Double> combatHoleRange = sgCombat.add(new DoubleSetting.Builder().name("max-combat-hole-range").description("Max distance between safe holes and the target").defaultValue(4.5).min(0).sliderMax(6).build());
-    public final Setting<Boolean> useKillaura = sgCombat.add(new BoolSetting.Builder().name("use-killaura").defaultValue(true).build());
-    public final Setting<Boolean> useCrystalAura = sgCombat.add(new BoolSetting.Builder().name("use-crystalaura").defaultValue(true).build());
+      public final Setting<Boolean> useCrystalAura = sgCA.add(new BoolSetting.Builder().name("use-crystalaura").defaultValue(true).build());
     //private final Setting<Boolean> useBedAura = sgCombat.add(new BoolSetting.Builder().name("use-bedaura").defaultValue(true).build());
     //private final Setting<Boolean> useAnchorAura = sgCombat.add(new BoolSetting.Builder().name("use-anchoraura").defaultValue(true).build());
 
     //public final Setting<Double> safeHoleRange = sgSafety.add(new DoubleSetting.Builder().name("max-safe-hole-range").description("Max distance between your position and safe holes").defaultValue(7.5).min(0).sliderMax(6).build());
-    public final Setting<Boolean> surroundFallback = sgSafety.add(new BoolSetting.Builder().name("allow-surround-fallback").defaultValue(true).build());
-    public final Setting<Boolean> useAutoGap = sgSafety.add(new BoolSetting.Builder().name("use-autogap").defaultValue(true).build());
-    public final Setting<Double> autoGapHP = sgGeneral.add(new DoubleSetting.Builder().name("autogap-hp").description("What health auto gap activates on").defaultValue(10).build());
-
 
     public PeeVeePee() {
         super(AutoPVP.CATEGORY, "AutoPVP", "button pushing with no buttons");
@@ -73,7 +92,7 @@ public class PeeVeePee extends Module {
             if (hasTarget()) targetPathSeq(); // path to a safe hole by the target / by ourselves
             else safePathSeq();
         } else { // if we are safe
-            if (PlayerUtils.getTotalHealth() <= minCombatHealth.get() || !hasTarget()) safeSeq(); // if we're below min health or without a target, do safe stuff
+            if (PlayerUtils.getTotalHealth() <= combatHealth.get() || !hasTarget()) safeSeq(); // if we're below min health or without a target, do safe stuff
             else combatSeq(); // if our health is good, and we have a target, do combat stuff
         }
     }
@@ -113,11 +132,12 @@ public class PeeVeePee extends Module {
     private void combatSeq() {
         targetPathing.reset();
         autoGap.disableModule();
-        if (mc.player.distanceTo(target) > distRatio.get()) { // if we aren't close enough to the target anymore
+        if (mc.player.distanceTo(target) > followRange.get()) { // if we aren't close enough to the target anymore
             ca.disableModule();
             targetPathSeq();
         }
         state = State.Combat;
+
         ca.run();
     }
 
@@ -130,7 +150,7 @@ public class PeeVeePee extends Module {
 
 
     private boolean isSafe() {
-        return HoleUtils.isPlayerSafe();
+        return HoleUtils.isPlayerSafe(mc.player);
     }
 
     private boolean hasTarget() {

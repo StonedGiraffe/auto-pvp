@@ -3,10 +3,11 @@ package me.ghost.autopvp.task.safety;
 import me.ghost.autopvp.PeeVeePee;
 import me.ghost.autopvp.utils.Helper;
 import me.ghost.autopvp.utils.HoleUtils;
-import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.systems.modules.player.AutoGap;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
+
+import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class GapTask extends SafetyTask {
 
@@ -18,6 +19,6 @@ public class GapTask extends SafetyTask {
     @Override
     public boolean check() {
         PeeVeePee p = Helper.getAutoPVP();
-        return p.useAutoGap.get() && HoleUtils.isPlayerSafe() && !(PlayerUtils.getTotalHealth() > p.autoGapHP.get());
+        return HoleUtils.isPlayerSafe(mc.player) && !(PlayerUtils.getTotalHealth() > p.autogapHealth.get());
     }
 }
